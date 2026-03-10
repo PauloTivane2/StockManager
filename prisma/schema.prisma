@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS
+// ----------------------------------------------------------------------------
+enum Role {
+  ADMIN
+  USER
+  MANAGER
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+  ADJUSTMENT
+  TRANSFER
+}
+
+enum OrderType {
+  PURCHASE
+  SALE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// ----------------------------------------------------------------------------
+// MODELS
+// ----------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String   // Hashed password
+  role      Role     @default(USER)
+  avatar    String?  
+  
+  movements StockMovement[]
+  orders    Order[]
+  
+  deletedAt DateTime? // Soft delete
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  slug        String   @unique
+  
+  products    Product[]
+  
+  deletedAt   DateTime? // Soft delete
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Supplier { // Fornecedor
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  
+  products  Product[]
+  orders    Order[]
+  
+  deletedAt DateTime? // Soft delete
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer { // Cliente
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  
+  orders    Order[]
+  
+  deletedAt DateTime? // Soft delete
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Warehouse { // Armazém
+  id          String   @id @default(uuid())
+  name        String
+  location    String?
+  description String?
+  isActive    Boolean  @default(true)
+  
+  deletedAt   DateTime? // Soft delete
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  sku         String        @unique
+  barcode     String?       @unique
+  price       Decimal       @db.Decimal(10, 2)
+  costPrice   Decimal       @db.Decimal(10, 2)
+  quantity    Int           @default(0)
+  minStock    Int           @default(0)
+  image       String?
+  
+  status      ProductStatus @default(ACTIVE)
+
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  
+  supplierId  String
+  supplier    Supplier      @relation(fields: [supplierId], references: [id])
+  
+  movements   StockMovement[]
+  orderItems  OrderItem[]
+
+  deletedAt   DateTime? // Soft delete
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sku])
+  @@index([categoryId])
+  @@index([supplierId])
+}
+
+model StockMovement {
+  id               String       @id @default(uuid())
+  type             MovementType
+  quantity         Int
+  reason           String?
+  previousQuantity Int
+  newQuantity      Int
+
+  productId        String
+  product          Product      @relation(fields: [productId], references: [id])
+  
+  userId           String
+  user             User         @relation(fields: [userId], references: [id])
+  
+  deletedAt        DateTime?    // Soft delete
+  createdAt        DateTime     @default(now())
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Order { // Pedido/Encomenda
+  id            String      @id @default(uuid())
+  orderNumber   String      @unique // Auto-generated e.g., ORD-2023-001
+  type          OrderType
+  status        OrderStatus @default(PENDING)
+  totalAmount   Decimal     @db.Decimal(10, 2)
+  notes         String?
+  
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+
+  supplierId    String?
+  supplier      Supplier?   @relation(fields: [supplierId], references: [id])
+
+  customerId    String?
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+
+  items         OrderItem[]
+
+  deletedAt     DateTime?   // Soft delete
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([orderNumber])
+  @@index([userId])
+  @@index([supplierId])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  totalPrice  Decimal  @db.Decimal(10, 2)
+
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}

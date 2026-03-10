@@ -13,7 +13,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'InventoryHub - Gestão de Estoque',
   description: 'Plataforma web completa para gestão de estoque em Moçambique',
-  generator: 'v0.app',
+  generator: 'stock',
   icons: {
     icon: [
       {
