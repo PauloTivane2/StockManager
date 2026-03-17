@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stockMovementSchema } from "@/lib/validations";
 import { MovementType } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -67,6 +69,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Use session user or fallback to the first user in the DB
+    let userId = validatedData.userId;
+    if (!userId) {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.id) {
+        userId = session.user.id;
+      } else {
+        const firstUser = await prisma.user.findFirst();
+        if (firstUser) {
+          userId = firstUser.id;
+        } else {
+          return NextResponse.json({ error: "Nenhum utilizador disponível para registar o movimento." }, { status: 400 });
+        }
+      }
+    }
+
     // Usar uma transação para garantir que o movimento e o produto sejam atualizados juntos
     const [movement, updatedProduct] = await prisma.$transaction([
       prisma.stockMovement.create({
@@ -74,7 +92,7 @@ export async function POST(request: Request) {
           ...validatedData,
           previousQuantity: product.quantity,
           newQuantity: newQuantity,
-          userId: validatedData.userId || "admin-fallback-123" // Em prod, pegar do token
+          userId: userId
         }
       }),
       prisma.product.update({

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
+import { Montserrat } from 'next/font/google'
 import './globals.css'
 import { MainLayout } from './components/layout/main-layout'
 import { NotificationProvider } from './contexts/notification-context'
@@ -8,8 +7,11 @@ import { NotificationContainer } from './components/notifications/notification-c
 import { InitializeStore } from '@/components/providers/initialize-store'
 import { AuthProvider } from '@/components/providers/auth-provider'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const montserrat = Montserrat({ 
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-montserrat',
+});
 
 export const metadata: Metadata = {
   title: 'InventoryHub - Gestão de Estoque',
@@ -27,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${montserrat.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>
           <NotificationProvider>
@@ -38,7 +40,7 @@ export default function RootLayout({
             <NotificationContainer />
           </NotificationProvider>
         </AuthProvider>
-        <Analytics />
+       
       </body>
     </html>
   )

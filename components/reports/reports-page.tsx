@@ -198,9 +198,9 @@ export function ReportsPage() {
     return Object.entries(trend).map(([date, data]) => ({ date, Entradas: data.entradas, Saídas: data.saidas }));
   }, [movements]);
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     try {
-      generateStockReport({ insights: { ...insights, totalProducts: products.length }, categoryData, topProducts });
+      await generateStockReport({ insights: { ...insights, totalProducts: products.length }, categoryData, topProducts });
       toast.success("PDF exportado com sucesso.");
     } catch {
       toast.error("Erro ao gerar o PDF.");

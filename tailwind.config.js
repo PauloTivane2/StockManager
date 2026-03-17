@@ -8,6 +8,9 @@ const config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-montserrat)', 'sans-serif'],
+      },
       colors: {
         primary: {
           DEFAULT: "var(--primary, #2563eb)",
@@ -44,6 +47,28 @@ const config = {
         info: {
           DEFAULT: "var(--info, #3b82f6)",
           foreground: "var(--info-foreground, #ffffff)"
+        },
+        secondary: {
+          DEFAULT: "var(--secondary, #f4f4f5)",
+          foreground: "var(--secondary-foreground, #18181b)"
+        },
+        popover: {
+          DEFAULT: "var(--popover, #ffffff)",
+          foreground: "var(--popover-foreground, #09090b)"
+        },
+        destructive: {
+          DEFAULT: "var(--destructive, #ef4444)",
+          foreground: "var(--destructive-foreground, #ffffff)"
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar, #fafafa)",
+          foreground: "var(--sidebar-foreground, #09090b)",
+          primary: "var(--sidebar-primary, #2563eb)",
+          "primary-foreground": "var(--sidebar-primary-foreground, #ffffff)",
+          accent: "var(--sidebar-accent, #f4f4f5)",
+          "accent-foreground": "var(--sidebar-accent-foreground, #18181b)",
+          border: "var(--sidebar-border, #e4e4e7)",
+          ring: "var(--sidebar-ring, #2563eb)",
         },
         input: 'var(--input)',
         ring: 'var(--ring)',

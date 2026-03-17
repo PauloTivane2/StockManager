@@ -16,9 +16,19 @@ const C = {
   alertBg:    [253, 245, 245] as [number, number, number],
 };
 
-// Use "times" — the built-in serif font closest to Georgia
-const SERIF = "times";
-const SANS  = "helvetica";
+// Use Montserrat
+const SERIF = "Montserrat";
+const SANS  = "Montserrat";
+
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
 // ──────────────────────────────────────────────────
 // Types
@@ -219,8 +229,27 @@ function drawKPIs(doc: jsPDF, data: PdfReportData): number {
 // ──────────────────────────────────────────────────
 // Main Generator
 // ──────────────────────────────────────────────────
-export function generateStockReport(data: PdfReportData): void {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+export async function generateStockReport(data: PdfReportData): Promise<void> {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+  try {
+    const [regRes, boldRes] = await Promise.all([
+      fetch('/fonts/Montserrat-Regular.ttf'),
+      fetch('/fonts/Montserrat-Bold.ttf')
+    ]);
+    const regBuf = await regRes.arrayBuffer();
+    const boldBuf = await boldRes.arrayBuffer();
+    
+    doc.addFileToVFS('Montserrat-Regular.ttf', arrayBufferToBase64(regBuf));
+    doc.addFont('Montserrat-Regular.ttf', 'Montserrat', 'normal');
+    
+    doc.addFileToVFS('Montserrat-Bold.ttf', arrayBufferToBase64(boldBuf));
+    doc.addFont('Montserrat-Bold.ttf', 'Montserrat', 'bold');
+    
+    doc.setFont("Montserrat");
+  } catch (error) {
+    console.error("Oops, could not load fonts...", error);
+  }
 
   // ── PAGE 1: HEADER + KPIs ──────────────────────
   drawHeader(doc, data);
@@ -399,6 +428,8 @@ export function generateStockReport(data: PdfReportData): void {
   }
 
   // ── SAVE ───────────────────────────────────────
-  const ts = new Date().toISOString().slice(0, 10);
-  doc.save(`STOK-Relatorio-Executivo-${ts}.pdf`);
+  const d = new Date();
+  const datePart = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+  const timePart = `${d.getHours().toString().padStart(2, "0")}h${d.getMinutes().toString().padStart(2, "0")}`;
+  doc.save(`STOK-Relatorio_${datePart}_${timePart}.pdf`);
 }
