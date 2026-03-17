@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,11 +105,7 @@ export function ProductsTable({
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        Carregando produtos...
-      </div>
-    );
+    return <TableSkeleton columns={8} rows={8} />;
   }
 
   return (

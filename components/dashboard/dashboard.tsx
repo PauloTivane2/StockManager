@@ -8,6 +8,7 @@ import { LowStockAlert } from "./low-stock-alert";
 import { RecentMovementsTable } from "./recent-movements-table";
 import { Package, AlertTriangle, TrendingUp, ArrowRightLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton, CardSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 interface DashboardStats {
   totalProducts: number;
@@ -23,14 +24,18 @@ export function Dashboard() {
     lowStockAlerts: 0,
     pendingOrdersCount: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
     try {
+      setIsLoading(true);
       const res = await fetch("/api/dashboard");
       const data = await res.json();
       setStats(data);
     } catch {
       // keep defaults
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -57,7 +62,16 @@ export function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KPICard
+        {isLoading ? (
+          <>
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </>
+        ) : (
+          <>
+            <KPICard
           title="Total de Produtos"
           value={stats.totalProducts}
           description="itens em catálogo"
@@ -85,6 +99,8 @@ export function Dashboard() {
           icon={ArrowRightLeft}
           color="info"
         />
+          </>
+        )}
       </div>
 
       {/* Charts + Alerts Row */}
@@ -103,18 +119,22 @@ export function Dashboard() {
                 </div>
                 <div className="flex items-center gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-sm bg-green-500" />
+                    <div className="w-3 h-3 rounded-sm bg-success" />
                     <span className="text-muted-foreground">Entradas</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-sm bg-red-500" />
+                    <div className="w-3 h-3 rounded-sm bg-danger" />
                     <span className="text-muted-foreground">Saídas</span>
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-4 pb-2">
-              <MovementActivityChart />
+             <CardContent className="pt-4 pb-2">
+              {isLoading ? (
+                <Skeleton className="w-full h-[280px]" />
+              ) : (
+                <MovementActivityChart />
+              )}
             </CardContent>
           </Card>
 
@@ -129,14 +149,18 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent className="pt-4 pb-2">
-              <InventoryOverviewChart />
+              {isLoading ? (
+                <Skeleton className="w-full h-[280px]" />
+              ) : (
+                <InventoryOverviewChart />
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Right Column */}
         <div>
-          <LowStockAlert />
+          {isLoading ? <CardSkeleton /> : <LowStockAlert />}
         </div>
       </div>
 

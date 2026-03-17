@@ -9,72 +9,51 @@ const config = {
   theme: {
     extend: {
       colors: {
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
-        card: {
-          DEFAULT: 'var(--card)',
-          foreground: 'var(--card-foreground)',
-        },
-        popover: {
-          DEFAULT: 'var(--popover)',
-          foreground: 'var(--popover-foreground)',
-        },
         primary: {
-          DEFAULT: 'var(--primary)',
-          foreground: 'var(--primary-foreground)',
-        },
-        secondary: {
-          DEFAULT: 'var(--secondary)',
-          foreground: 'var(--secondary-foreground)',
-        },
-        muted: {
-          DEFAULT: 'var(--muted)',
-          foreground: 'var(--muted-foreground)',
+          DEFAULT: "var(--primary, #2563eb)",
+          foreground: "var(--primary-foreground, #ffffff)"
         },
         accent: {
-          DEFAULT: 'var(--accent)',
-          foreground: 'var(--accent-foreground)',
+          DEFAULT: "var(--accent, #3b82f6)",
+          foreground: "var(--accent-foreground, #ffffff)"
         },
-        destructive: {
-          DEFAULT: 'var(--destructive)',
-          foreground: 'var(--destructive-foreground)',
+        background: "var(--background, #0f172a)",
+        surface: "var(--surface, #111827)",
+        card: {
+          DEFAULT: "var(--card, #1f2937)",
+          foreground: "var(--card-foreground, #f9fafb)"
         },
+        border: "var(--border, #374151)",
+        muted: {
+          DEFAULT: "var(--muted, #9ca3af)",
+          foreground: "var(--muted-foreground, #f9fafb)"
+        },
+        foreground: "var(--foreground, #f9fafb)",
         success: {
-          DEFAULT: 'var(--success)',
-          foreground: 'var(--success-foreground)',
+          DEFAULT: "var(--success, #22c55e)",
+          foreground: "var(--success-foreground, #ffffff)"
         },
         warning: {
-          DEFAULT: 'var(--warning)',
-          foreground: 'var(--warning-foreground)',
+          DEFAULT: "var(--warning, #f59e0b)",
+          foreground: "var(--warning-foreground, #ffffff)"
         },
         danger: {
-          DEFAULT: 'var(--danger)',
-          foreground: 'var(--danger-foreground)',
+          DEFAULT: "var(--danger, #ef4444)",
+          foreground: "var(--danger-foreground, #ffffff)"
         },
         info: {
-          DEFAULT: 'var(--info)',
-          foreground: 'var(--info-foreground)',
+          DEFAULT: "var(--info, #3b82f6)",
+          foreground: "var(--info-foreground, #ffffff)"
         },
-        surface: 'var(--surface)',
-        border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',
         chart: {
-          1: 'var(--chart-1)',
-          2: 'var(--chart-2)',
-          3: 'var(--chart-3)',
-          4: 'var(--chart-4)',
-          5: 'var(--chart-5)',
-        },
-        sidebar: {
-          DEFAULT: 'var(--sidebar)',
-          foreground: 'var(--sidebar-foreground)',
-          primary: 'var(--sidebar-primary)',
-          'primary-foreground': 'var(--sidebar-primary-foreground)',
-          accent: 'var(--sidebar-accent)',
-          'accent-foreground': 'var(--sidebar-accent-foreground)',
-          border: 'var(--sidebar-border)',
-          ring: 'var(--sidebar-ring)',
+          primary: "var(--chart-primary, #2563eb)",
+          secondary: "var(--chart-secondary, #64748b)",
+          accent: "var(--chart-accent, #3b82f6)",
+          success: "var(--chart-success, #10b981)",
+          warning: "var(--chart-warning, #f59e0b)",
+          danger: "var(--chart-danger, #ef4444)",
         },
       },
       borderRadius: {

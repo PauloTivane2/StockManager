@@ -36,11 +36,19 @@ import {
   ArrowDownCircle,
 } from "lucide-react";
 import { generateStockReport } from "@/components/reports/pdf";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { CardSkeleton } from "@/components/ui/skeleton";
 
-const PIE_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#ec4899"];
+const PIE_COLORS = [
+  "var(--chart-primary)",
+  "var(--chart-secondary)",
+  "var(--chart-success)",
+  "var(--chart-warning)",
+  "var(--chart-danger)",
+  "var(--chart-accent)"
+];
 
 const RADIAN = Math.PI / 180;
 const PieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -213,12 +221,17 @@ export function ReportsPage() {
           <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
           <p className="text-muted-foreground mt-1">Análise detalhada do seu estoque</p>
         </div>
-        <div className="flex items-center justify-center py-24 text-muted-foreground">
-          <div className="text-center space-y-2">
-            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-sm">A carregar dados...</p>
-          </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
         </div>
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3"><CardSkeleton /></div>
+          <div className="lg:col-span-2"><CardSkeleton /></div>
+        </div>
+        <CardSkeleton />
       </div>
     );
   }
@@ -274,11 +287,11 @@ export function ReportsPage() {
               </div>
               <div className="flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-sm" style={{ background: "#10b981" }} />
+                  <div className="w-3 h-3 rounded-sm bg-success" />
                   <span className="text-muted-foreground">Entradas</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-sm" style={{ background: "#ef4444" }} />
+                  <div className="w-3 h-3 rounded-sm bg-danger" />
                   <span className="text-muted-foreground">Saídas</span>
                 </div>
               </div>
@@ -289,20 +302,20 @@ export function ReportsPage() {
               <AreaChart data={movementTrend}>
                 <defs>
                   <linearGradient id="entryFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--chart-success)" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="var(--chart-success)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="exitFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.20} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--chart-danger)" stopOpacity={0.20} />
+                    <stop offset="95%" stopColor="var(--chart-danger)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={1} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={35} allowDecimals={false} />
                 <Tooltip content={<CustomTooltipLine />} />
-                <Area type="monotone" dataKey="Entradas" stroke="#10b981" strokeWidth={2.5} fill="url(#entryFill)" dot={false} activeDot={{ r: 5, fill: "#10b981" }} />
-                <Area type="monotone" dataKey="Saídas" stroke="#ef4444" strokeWidth={2.5} fill="url(#exitFill)" dot={false} activeDot={{ r: 5, fill: "#ef4444" }} />
+                <Area type="monotone" dataKey="Entradas" stroke="var(--chart-success)" strokeWidth={2.5} fill="url(#entryFill)" dot={false} activeDot={{ r: 5, fill: "var(--chart-success)" }} />
+                <Area type="monotone" dataKey="Saídas" stroke="var(--chart-danger)" strokeWidth={2.5} fill="url(#exitFill)" dot={false} activeDot={{ r: 5, fill: "var(--chart-danger)" }} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -357,8 +370,8 @@ export function ReportsPage() {
             <BarChart data={topProductsChartData} layout="vertical" margin={{ left: 8, right: 24 }}>
               <defs>
                 <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={1} />
+                  <stop offset="0%" stopColor="var(--chart-primary)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-secondary)" stopOpacity={1} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />

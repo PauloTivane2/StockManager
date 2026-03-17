@@ -21,8 +21,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MovementForm } from "./movement-form";
-import { Plus, ArrowDownRight, ArrowUpRight, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
+import { Plus, ArrowDownRight, ArrowUpRight, ArrowRightLeft } from "lucide-react";
+import { Skeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 export interface DbMovement {
   id: string;
@@ -212,12 +213,12 @@ export function MovementsPage() {
         <CardHeader>
           <CardTitle>Histórico de Movimentações</CardTitle>
           <CardDescription>
-            {loading ? "Carregando..." : `${filteredMovements.length} movimentação(ões) encontrada(s)`}
+            {loading ? <Skeleton className="h-4 w-48 mt-1" /> : `${filteredMovements.length} movimentação(ões) encontrada(s)`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Carregando movimentações...</div>
+            <TableSkeleton columns={7} rows={6} />
           ) : filteredMovements.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhuma movimentação encontrada</p>

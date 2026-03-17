@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface LowStockProduct {
   id: string;
@@ -16,14 +17,18 @@ interface LowStockProduct {
 
 export function LowStockAlert() {
   const [items, setItems] = useState<LowStockProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     fetch("/api/products?limit=500")
       .then((r) => r.json())
       .then((json) => {
         const products = json.data ?? [];
         setItems(products.filter((p: LowStockProduct) => p.quantity <= p.minStock));
-      });
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const formatCurrency = (value: number) =>
@@ -45,7 +50,20 @@ export function LowStockAlert() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {items.length === 0 ? (
+        {isLoading ? (
+          <ScrollArea className="h-80 pr-4">
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="border-l-2 border-warning/30 bg-card p-3 rounded space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
+                  <Skeleton className="h-3 w-1/4" />
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        ) : items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum item em alerta</p>
         ) : (
           <ScrollArea className="h-80 pr-4">

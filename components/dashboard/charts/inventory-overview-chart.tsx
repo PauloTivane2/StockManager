@@ -10,7 +10,14 @@ import {
   Legend,
 } from "recharts";
 
-const COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#06b6d4"];
+const COLORS = [
+  "var(--chart-primary)",
+  "var(--chart-secondary)",
+  "var(--chart-success)",
+  "var(--chart-warning)",
+  "var(--chart-danger)",
+  "var(--chart-accent)"
+];
 
 interface CategoryItem {
   name: string;

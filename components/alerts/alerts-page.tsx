@@ -10,6 +10,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { Skeleton, CardSkeleton } from "@/components/ui/skeleton";
 
 interface LowStockProduct {
   id: string;
@@ -172,7 +173,11 @@ export function AlertsPage() {
       {/* Alerts List */}
       <div className="space-y-6">
         {loading && (
-          <p className="text-center text-muted-foreground py-8">Carregando alertas...</p>
+          <div className="space-y-4">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
         )}
 
         {!loading && dangerAlerts.length > 0 && (

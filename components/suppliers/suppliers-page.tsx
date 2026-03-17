@@ -14,7 +14,7 @@ import { Plus, Search, Truck, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { SupplierForm } from "./supplier-form";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 interface DbSupplier {
   id: string;
@@ -146,11 +146,7 @@ export function SuppliersPage({ embedded = false }: { embedded?: boolean }) {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-lg" />
-              ))}
-            </div>
+            <TableSkeleton columns={4} rows={5} />
           ) : suppliers.length === 0 ? (
             <div className="text-center py-12">
               <Truck className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />

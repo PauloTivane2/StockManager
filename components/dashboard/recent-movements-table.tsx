@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface DbMovement {
   id: string;
@@ -25,11 +26,15 @@ interface DbMovement {
 
 export function RecentMovementsTable() {
   const [movements, setMovements] = useState<DbMovement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     fetch("/api/stock?limit=10")
       .then((r) => r.json())
-      .then((json) => setMovements(json.data ?? []));
+      .then((json) => setMovements(json.data ?? []))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const formatDate = (date: string) =>
@@ -50,7 +55,9 @@ export function RecentMovementsTable() {
         <CardDescription>Últimas movimentações de estoque</CardDescription>
       </CardHeader>
       <CardContent>
-        {movements.length === 0 ? (
+        {isLoading ? (
+          <TableSkeleton columns={6} rows={5} />
+        ) : movements.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhuma movimentação registrada</p>
         ) : (
           <Table>
