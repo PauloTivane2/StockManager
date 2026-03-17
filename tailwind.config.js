@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 const config = {
+  darkMode: "class",
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -38,6 +39,23 @@ const config = {
           DEFAULT: 'var(--destructive)',
           foreground: 'var(--destructive-foreground)',
         },
+        success: {
+          DEFAULT: 'var(--success)',
+          foreground: 'var(--success-foreground)',
+        },
+        warning: {
+          DEFAULT: 'var(--warning)',
+          foreground: 'var(--warning-foreground)',
+        },
+        danger: {
+          DEFAULT: 'var(--danger)',
+          foreground: 'var(--danger-foreground)',
+        },
+        info: {
+          DEFAULT: 'var(--info)',
+          foreground: 'var(--info-foreground)',
+        },
+        surface: 'var(--surface)',
         border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',

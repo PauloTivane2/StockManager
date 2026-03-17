@@ -9,8 +9,13 @@ import {
   BarChart3,
   Settings,
   Bell,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSession, signOut } from "next-auth/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const NAV_ITEMS = [
   {
@@ -42,6 +47,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-background flex flex-col">
@@ -78,19 +84,57 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-border p-4">
-        <Link
-          href="/settings"
-          className={cn(
-            "flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
-            pathname === "/settings"
-              ? "bg-primary text-primary-foreground"
-              : "text-foreground hover:bg-accent hover:text-accent-foreground"
+      <div className="border-t border-border p-4 space-y-4">
+        {/* User Profile */}
+        <div className="flex items-center gap-3 px-2">
+          {status === "loading" ? (
+            <>
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </>
+          ) : session?.user ? (
+            <>
+              <Avatar>
+                <AvatarImage src={session.user.image || undefined} alt="Avatar" />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {session.user.name?.substring(0, 2).toUpperCase() || <UserIcon className="h-4 w-4" />}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-medium truncate">{session.user.name}</span>
+                <span className="text-xs text-muted-foreground truncate">{session.user.email}</span>
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        <div className="space-y-1">
+          <Link
+            href="/settings"
+            className={cn(
+              "flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+              pathname === "/settings"
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            <span>Configurações</span>
+          </Link>
+          
+          {session?.user && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="w-full flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium transition-colors text-danger hover:bg-danger/10"
+            >
+              <LogOut className="h-4 w-4 flex-shrink-0" />
+              <span>Sair</span>
+            </button>
           )}
-        >
-          <Settings className="h-5 w-5 flex-shrink-0" />
-          <span>Configurações</span>
-        </Link>
+        </div>
       </div>
     </aside>
   );

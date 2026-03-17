@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { Movement } from "@/types";
-import { useInventoryStore } from "@/lib/store";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,33 +12,36 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { MovementType } from "@/types";
 
-interface RecentMovementsTableProps {
-  movements: Movement[];
+interface DbMovement {
+  id: string;
+  type: "ENTRY" | "EXIT" | "ADJUSTMENT" | "TRANSFER";
+  quantity: number;
+  reason: string | null;
+  createdAt: string;
+  product: { id: string; name: string; sku: string };
+  user: { id: string; name: string };
 }
 
-export function RecentMovementsTable({ movements }: RecentMovementsTableProps) {
-  const { getProduct } = useInventoryStore();
+export function RecentMovementsTable() {
+  const [movements, setMovements] = useState<DbMovement[]>([]);
 
-  const movementsWithNames = useMemo(
-    () =>
-      movements.map((movement) => ({
-        ...movement,
-        productName: getProduct(movement.productId)?.name || "Produto não encontrado",
-      })),
-    [movements, getProduct]
-  );
+  useEffect(() => {
+    fetch("/api/stock?limit=10")
+      .then((r) => r.json())
+      .then((json) => setMovements(json.data ?? []));
+  }, []);
 
-  const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return new Intl.DateTimeFormat("pt-BR", {
+  const formatDate = (date: string) =>
+    new Intl.DateTimeFormat("pt-BR", {
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(dateObj);
-  };
+    }).format(new Date(date));
+
+  const getTypeLabel = (type: string) =>
+    ({ ENTRY: "Entrada", EXIT: "Saída", ADJUSTMENT: "Ajuste", TRANSFER: "Transferência" }[type] ?? type);
 
   return (
     <Card>
@@ -49,53 +50,55 @@ export function RecentMovementsTable({ movements }: RecentMovementsTableProps) {
         <CardDescription>Últimas movimentações de estoque</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Produto</TableHead>
-              <TableHead>Quantidade</TableHead>
-              <TableHead>Motivo</TableHead>
-              <TableHead>Data</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {movementsWithNames.map((movement) => (
-              <TableRow key={movement.id}>
-                <TableCell>
-                  <Badge
-                    variant={
-                      movement.type === MovementType.ENTRY
-                        ? "default"
-                        : "secondary"
-                    }
-                    className="flex w-fit items-center gap-1"
-                  >
-                    {movement.type === MovementType.ENTRY ? (
-                      <>
-                        <ArrowUpRight className="h-3 w-3" />
-                        Entrada
-                      </>
-                    ) : (
-                      <>
-                        <ArrowDownRight className="h-3 w-3" />
-                        Saída
-                      </>
-                    )}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-medium">{movement.productName}</TableCell>
-                <TableCell>{movement.quantity}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {movement.reason || "-"}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {formatDate(movement.date)}
-                </TableCell>
+        {movements.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Nenhuma movimentação registrada</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead>Quantidade</TableHead>
+                <TableHead>Motivo</TableHead>
+                <TableHead>Utilizador</TableHead>
+                <TableHead>Data</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {movements.map((movement) => (
+                <TableRow key={movement.id}>
+                  <TableCell>
+                    <Badge
+                      variant={movement.type === "ENTRY" ? "default" : "secondary"}
+                      className="flex w-fit items-center gap-1"
+                    >
+                      {movement.type === "ENTRY" ? (
+                        <ArrowUpRight className="h-3 w-3" />
+                      ) : (
+                        <ArrowDownRight className="h-3 w-3" />
+                      )}
+                      {getTypeLabel(movement.type)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {movement.product.name}
+                    <span className="text-xs text-muted-foreground ml-1">({movement.product.sku})</span>
+                  </TableCell>
+                  <TableCell>{movement.quantity}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {movement.reason || "-"}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {movement.user.name}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatDate(movement.createdAt)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

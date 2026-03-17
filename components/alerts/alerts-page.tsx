@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useInventoryStore } from "@/lib/store";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,168 +9,137 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  Info,
 } from "lucide-react";
+
+interface LowStockProduct {
+  id: string;
+  name: string;
+  sku: string;
+  quantity: number;
+  minStock: number;
+  category: { name: string };
+}
 
 interface Alert {
   id: string;
   type: "warning" | "danger" | "info";
   title: string;
   description: string;
-  productId?: string;
-  productName?: string;
   timestamp: Date;
-  acknowledged: boolean;
 }
 
 export function AlertsPage() {
-  const { products, movements, getProduct } = useInventoryStore();
-  const [acknowledgedAlerts, setAcknowledgedAlerts] = useState<Set<string>>(
-    new Set()
-  );
+  const [products, setProducts] = useState<LowStockProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [acknowledged, setAcknowledged] = useState<Set<string>>(new Set());
 
-  const alerts = useMemo(() => {
-    const generatedAlerts: Alert[] = [];
+  const fetchAlerts = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Fetch all active products to compute alerts
+      const res = await fetch("/api/products?limit=500");
+      const json = await res.json();
+      setProducts(json.data ?? []);
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    // Low stock alerts
-    products.forEach((product) => {
-      if (product.quantity <= product.minimumStock) {
-        generatedAlerts.push({
-          id: `alert_low_${product.id}`,
-          type: "warning",
-          title: "Estoque Baixo",
-          description: `${product.name} está abaixo do estoque mínimo. Quantidade atual: ${product.quantity} ${product.unit}, Mínimo: ${product.minimumStock} ${product.unit}`,
-          productId: product.id,
-          productName: product.name,
-          timestamp: product.lastUpdated,
-          acknowledged: false,
-        });
-      }
-    });
+  useEffect(() => {
+    fetchAlerts();
+  }, [fetchAlerts]);
 
-    // Out of stock alerts
-    products.forEach((product) => {
-      if (product.quantity === 0) {
-        generatedAlerts.push({
-          id: `alert_out_${product.id}`,
-          type: "danger",
-          title: "Fora do Estoque",
-          description: `${product.name} está sem estoque. Reposição urgente recomendada.`,
-          productId: product.id,
-          productName: product.name,
-          timestamp: product.lastUpdated,
-          acknowledged: false,
-        });
-      }
-    });
+  // Derive alerts from real product data
+  const alerts: Alert[] = [];
 
-    // High value products alerts
-    products.forEach((product) => {
-      const totalValue = product.quantity * product.unitPrice;
-      if (totalValue > 100000 && product.quantity < product.minimumStock * 2) {
-        generatedAlerts.push({
-          id: `alert_value_${product.id}`,
-          type: "info",
-          title: "Produto de Alto Valor",
-          description: `${product.name} tem valor em estoque de ${new Intl.NumberFormat("pt-MZ", {
-            style: "currency",
-            currency: "MZN",
-          }).format(totalValue)} e quantidade baixa.`,
-          productId: product.id,
-          productName: product.name,
-          timestamp: product.lastUpdated,
-          acknowledged: false,
-        });
-      }
-    });
-
-    // Recent high movement alerts
-    const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentMovements = movements.filter((m) => {
-      const movementDate = typeof m.date === 'string' ? new Date(m.date) : m.date;
-      return movementDate >= last7Days;
-    });
-
-    if (recentMovements.length > 30) {
-      generatedAlerts.push({
-        id: "alert_high_activity",
-        type: "info",
-        title: "Alta Atividade",
-        description: `Foram registradas ${recentMovements.length} movimentações nos últimos 7 dias. Atividade acima do normal.`,
+  products.forEach((p) => {
+    if (p.quantity === 0) {
+      alerts.push({
+        id: `out_${p.id}`,
+        type: "danger",
+        title: "Fora do Estoque",
+        description: `${p.name} (${p.sku}) está sem estoque. Reposição urgente recomendada.`,
         timestamp: new Date(),
-        acknowledged: false,
+      });
+    } else if (p.quantity <= p.minStock) {
+      alerts.push({
+        id: `low_${p.id}`,
+        type: "warning",
+        title: "Estoque Baixo",
+        description: `${p.name} (${p.sku}) — Quantidade atual: ${p.quantity}, Mínimo definido: ${p.minStock}.`,
+        timestamp: new Date(),
       });
     }
+  });
 
-    return generatedAlerts.sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
-    );
-  }, [products, movements]);
-
-  const toggleAcknowledge = (alertId: string) => {
-    setAcknowledgedAlerts((prev) => {
+  const toggleAcknowledge = (id: string) => {
+    setAcknowledged((prev) => {
       const updated = new Set(prev);
-      if (updated.has(alertId)) {
-        updated.delete(alertId);
+      if (updated.has(id)) {
+        updated.delete(id);
       } else {
-        updated.add(alertId);
+        updated.add(id);
       }
       return updated;
     });
   };
 
-  const dangerAlerts = alerts.filter(
-    (a) => a.type === "danger" && !acknowledgedAlerts.has(a.id)
-  );
-  const warningAlerts = alerts.filter(
-    (a) => a.type === "warning" && !acknowledgedAlerts.has(a.id)
-  );
-  const infoAlerts = alerts.filter(
-    (a) => a.type === "info" && !acknowledgedAlerts.has(a.id)
-  );
-  const acknowledgedCount = acknowledgedAlerts.size;
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-BR", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(date));
-  };
+  const dangerAlerts = alerts.filter((a) => a.type === "danger" && !acknowledged.has(a.id));
+  const warningAlerts = alerts.filter((a) => a.type === "warning" && !acknowledged.has(a.id));
+  const infoAlerts = alerts.filter((a) => a.type === "info" && !acknowledged.has(a.id));
+  const acknowledgedCount = acknowledged.size;
 
   const getAlertIcon = (type: "warning" | "danger" | "info") => {
     switch (type) {
-      case "danger":
-        return <XCircle className="h-5 w-5" />;
-      case "warning":
-        return <AlertTriangle className="h-5 w-5" />;
-      case "info":
-        return <AlertCircle className="h-5 w-5" />;
+      case "danger": return <XCircle className="h-5 w-5" />;
+      case "warning": return <AlertTriangle className="h-5 w-5" />;
+      case "info": return <AlertCircle className="h-5 w-5" />;
     }
   };
 
   const getAlertColor = (type: "warning" | "danger" | "info") => {
     switch (type) {
-      case "danger":
-        return "border-red-200 bg-red-50";
-      case "warning":
-        return "border-orange-200 bg-orange-50";
-      case "info":
-        return "border-blue-200 bg-blue-50";
+      case "danger": return "border-danger/30 bg-danger/10";
+      case "warning": return "border-warning/30 bg-warning/10";
+      case "info": return "border-info/30 bg-info/10";
     }
   };
 
   const getAlertIconColor = (type: "warning" | "danger" | "info") => {
     switch (type) {
-      case "danger":
-        return "text-red-600";
-      case "warning":
-        return "text-orange-600";
-      case "info":
-        return "text-blue-600";
+      case "danger": return "text-danger";
+      case "warning": return "text-warning";
+      case "info": return "text-info";
     }
   };
+
+  const AlertCard = ({ alert }: { alert: Alert }) => (
+    <Card className={`${getAlertColor(alert.type)} border`}>
+      <CardContent className="pt-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3 flex-1">
+            <div className={`flex-shrink-0 ${getAlertIconColor(alert.type)}`}>
+              {getAlertIcon(alert.type)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground">{alert.title}</p>
+              <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleAcknowledge(alert.id)}
+          >
+            <CheckCircle className="h-4 w-4 mr-1" />
+            Confirmar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-8">
@@ -185,254 +153,75 @@ export function AlertsPage() {
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Alertas Críticos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {dangerAlerts.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Requerem ação imediata
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Avisos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {warningAlerts.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Atenção necessária
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Informações
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {infoAlerts.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Para sua informação
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Reconhecidos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {acknowledgedCount}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Alertas confirmados
-            </p>
-          </CardContent>
-        </Card>
+        {[
+          { label: "Alertas Críticos", value: dangerAlerts.length, color: "text-danger", sub: "Requerem ação imediata" },
+          { label: "Avisos", value: warningAlerts.length, color: "text-warning", sub: "Atenção necessária" },
+          { label: "Informações", value: infoAlerts.length, color: "text-info", sub: "Para sua informação" },
+          { label: "Reconhecidos", value: acknowledgedCount, color: "text-success", sub: "Alertas confirmados" },
+        ].map(({ label, value, color, sub }) => (
+          <Card key={label}>
+            <CardContent className="pt-6">
+              <p className="text-sm font-medium text-muted-foreground">{label}</p>
+              <div className={`text-2xl font-bold ${color} mt-1`}>{value}</div>
+              <p className="text-xs text-muted-foreground mt-1">{sub}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Alerts List */}
-      <div className="space-y-4">
-        {/* Critical Alerts */}
-        {dangerAlerts.length > 0 && (
+      <div className="space-y-6">
+        {loading && (
+          <p className="text-center text-muted-foreground py-8">Carregando alertas...</p>
+        )}
+
+        {!loading && dangerAlerts.length > 0 && (
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-3">
-              Alertas Críticos
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Alertas Críticos</h2>
             <div className="space-y-2">
-              {dangerAlerts.map((alert) => (
-                <Card
-                  key={alert.id}
-                  className={`border-2 ${getAlertColor(alert.type)}`}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex gap-3 flex-1">
-                        <div
-                          className={`flex-shrink-0 ${getAlertIconColor(
-                            alert.type
-                          )}`}
-                        >
-                          {getAlertIcon(alert.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground">
-                            {alert.title}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {alert.description}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {formatDate(alert.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleAcknowledge(alert.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Confirmar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {dangerAlerts.map((alert) => <AlertCard key={alert.id} alert={alert} />)}
             </div>
           </div>
         )}
 
-        {/* Warning Alerts */}
-        {warningAlerts.length > 0 && (
+        {!loading && warningAlerts.length > 0 && (
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-3">
-              Avisos
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Avisos</h2>
             <div className="space-y-2">
-              {warningAlerts.map((alert) => (
-                <Card
-                  key={alert.id}
-                  className={`${getAlertColor(alert.type)}`}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex gap-3 flex-1">
-                        <div
-                          className={`flex-shrink-0 ${getAlertIconColor(
-                            alert.type
-                          )}`}
-                        >
-                          {getAlertIcon(alert.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground">
-                            {alert.title}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {alert.description}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {formatDate(alert.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleAcknowledge(alert.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Confirmar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {warningAlerts.map((alert) => <AlertCard key={alert.id} alert={alert} />)}
             </div>
           </div>
         )}
 
-        {/* Info Alerts */}
-        {infoAlerts.length > 0 && (
+        {!loading && infoAlerts.length > 0 && (
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-3">
-              Informações
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Informações</h2>
             <div className="space-y-2">
-              {infoAlerts.map((alert) => (
-                <Card
-                  key={alert.id}
-                  className={`${getAlertColor(alert.type)}`}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex gap-3 flex-1">
-                        <div
-                          className={`flex-shrink-0 ${getAlertIconColor(
-                            alert.type
-                          )}`}
-                        >
-                          {getAlertIcon(alert.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-foreground">
-                            {alert.title}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {alert.description}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {formatDate(alert.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleAcknowledge(alert.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Confirmar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {infoAlerts.map((alert) => <AlertCard key={alert.id} alert={alert} />)}
             </div>
           </div>
         )}
 
-        {/* Acknowledged Alerts */}
         {acknowledgedCount > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-3">
-              Alertas Confirmados ({acknowledgedCount})
-            </h2>
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-sm text-green-700">
-                  <CheckCircle className="h-5 w-5" />
-                  <span>
-                    Você confirmou {acknowledgedCount} alerta(s). Continue
-                    monitorando seu estoque.
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-success/30 bg-success/10">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-sm text-success">
+                <CheckCircle className="h-5 w-5" />
+                <span>Você confirmou {acknowledgedCount} alerta(s). Continue monitorando o seu estoque.</span>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        {/* No Alerts */}
-        {dangerAlerts.length === 0 &&
+        {!loading &&
+          dangerAlerts.length === 0 &&
           warningAlerts.length === 0 &&
           infoAlerts.length === 0 && (
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                  <p className="text-lg font-semibold text-foreground">
-                    Tudo Ok!
-                  </p>
+                  <CheckCircle className="h-12 w-12 text-success mx-auto mb-3" />
+                  <p className="text-lg font-semibold text-foreground">Tudo Ok!</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Não há alertas pendentes no momento
                   </p>

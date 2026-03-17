@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Product } from "@/types";
-import { useInventoryStore } from "@/lib/store";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DbProduct } from "./products-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,46 +28,54 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Edit, Trash2, AlertTriangle } from "lucide-react";
-import { Category } from "@/types";
 import { toast } from "sonner";
 
 interface ProductsTableProps {
-  products: Product[];
-  onEdit: (product: Product) => void;
+  products: DbProduct[];
+  loading: boolean;
+  onEdit: (product: DbProduct) => void;
   onDelete: (id: string) => void;
 }
 
 export function ProductsTable({
-  products: initialProducts,
+  products,
+  loading,
   onEdit,
   onDelete,
 }: ProductsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "quantity" | "value">("name");
+  const [deleteProduct, setDeleteProduct] = useState<{ id: string; name: string } | null>(null);
+
+  const categories = useMemo(() => {
+    const unique = new Map<string, string>();
+    products.forEach((p) => unique.set(p.categoryId, p.category.name));
+    return Array.from(unique.entries());
+  }, [products]);
 
   const filteredAndSorted = useMemo(() => {
-    let filtered = initialProducts;
+    let filtered = products;
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Filter by category
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
+      filtered = filtered.filter((p) => p.categoryId === selectedCategory);
     }
 
-    // Sort
-    filtered.sort((a, b) => {
+    filtered = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case "quantity":
           return b.quantity - a.quantity;
         case "value":
-          return b.quantity * b.unitPrice - a.quantity * a.unitPrice;
+          return (
+            b.quantity * Number(b.price) - a.quantity * Number(a.price)
+          );
         case "name":
         default:
           return a.name.localeCompare(b.name);
@@ -75,26 +83,39 @@ export function ProductsTable({
     });
 
     return filtered;
-  }, [initialProducts, searchTerm, selectedCategory, sortBy]);
+  }, [products, searchTerm, selectedCategory, sortBy]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-MZ", {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-MZ", {
       style: "currency",
       currency: "MZN",
       minimumFractionDigits: 0,
     }).format(value);
+
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteProduct({ id, name });
   };
 
-  const handleDelete = (id: string, name: string) => {
-    onDelete(id);
-    toast.success(`${name} removido do estoque`);
+  const confirmDelete = () => {
+    if (deleteProduct) {
+      onDelete(deleteProduct.id);
+      setDeleteProduct(null);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        Carregando produtos...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex gap-4 flex-col sm:flex-row">
         <Input
-          placeholder="Buscar produtos..."
+          placeholder="Buscar por nome ou SKU..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
@@ -106,9 +127,9 @@ export function ProductsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
-            {Object.values(Category).map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
+            {categories.map(([id, name]) => (
+              <SelectItem key={id} value={id}>
+                {name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -131,6 +152,7 @@ export function ProductsTable({
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>SKU</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead className="text-right">Quantidade</TableHead>
               <TableHead className="text-right">Preço Unit.</TableHead>
@@ -141,25 +163,27 @@ export function ProductsTable({
           </TableHeader>
           <TableBody>
             {filteredAndSorted.map((product) => {
-              const isLowStock = product.quantity <= product.minimumStock;
-              const totalValue = product.quantity * product.unitPrice;
+              const isLowStock = product.quantity <= product.minStock;
+              const totalValue = product.quantity * Number(product.price);
 
               return (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{product.sku}</TableCell>
+                  <TableCell>{product.category.name}</TableCell>
+                  <TableCell className="text-right">{product.quantity}</TableCell>
                   <TableCell className="text-right">
-                    {product.quantity} {product.unit}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(product.unitPrice)}
+                    {formatCurrency(Number(product.price))}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {formatCurrency(totalValue)}
                   </TableCell>
                   <TableCell className="text-center">
                     {isLowStock ? (
-                      <Badge variant="destructive" className="flex w-fit mx-auto items-center gap-1">
+                      <Badge
+                        variant="destructive"
+                        className="flex w-fit mx-auto items-center gap-1"
+                      >
                         <AlertTriangle className="h-3 w-3" />
                         Baixo
                       </Badge>
@@ -170,11 +194,7 @@ export function ProductsTable({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                        >
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -184,10 +204,8 @@ export function ProductsTable({
                           Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() =>
-                            handleDelete(product.id, product.name)
-                          }
-                          className="text-red-600"
+                          onClick={() => handleDeleteClick(product.id, product.name)}
+                          className="text-danger"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Deletar
@@ -207,6 +225,14 @@ export function ProductsTable({
           <p className="text-muted-foreground">Nenhum produto encontrado</p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteProduct}
+        onOpenChange={(open) => !open && setDeleteProduct(null)}
+        title="Confirmar Exclusão"
+        description={`Tem certeza que deseja excluir "${deleteProduct?.name}"? Esta ação não pode ser desfeita.`}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

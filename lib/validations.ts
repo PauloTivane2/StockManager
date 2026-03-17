@@ -40,7 +40,7 @@ export const productSchema = z.object({
   minStock: z.coerce.number().min(0).default(0),
   image: z.string().optional(),
   categoryId: z.string().min(1, "Selecione uma categoria"),
-  supplierId: z.string().min(1, "Selecione um fornecedor"),
+  supplierId: z.string().optional().or(z.literal("")),
 });
 
 // --- Stock Movements ---

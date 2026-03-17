@@ -10,13 +10,13 @@ export function NotificationContainer() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 text-success" />;
       case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-600" />;
+        return <AlertCircle className="h-5 w-5 text-danger" />;
       case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+        return <AlertTriangle className="h-5 w-5 text-warning" />;
       case 'info':
-        return <Info className="h-5 w-5 text-blue-600" />;
+        return <Info className="h-5 w-5 text-info" />;
       default:
         return null;
     }
@@ -25,15 +25,15 @@ export function NotificationContainer() {
   const getBgColor = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 border-green-200';
+        return 'bg-success/10 border-success/30';
       case 'error':
-        return 'bg-red-50 border-red-200';
+        return 'bg-danger/10 border-danger/30';
       case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
+        return 'bg-warning/10 border-warning/30';
       case 'info':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-info/10 border-info/30';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-muted border-border';
     }
   };
 
@@ -47,13 +47,13 @@ export function NotificationContainer() {
           <div className="flex-shrink-0">{getIcon(notification.type)}</div>
           <div className="flex-1">
             {notification.title && (
-              <h3 className="font-semibold text-gray-900">{notification.title}</h3>
+              <h3 className="font-semibold text-foreground">{notification.title}</h3>
             )}
-            <p className="text-sm text-gray-700">{notification.message}</p>
+            <p className="text-sm text-muted-foreground">{notification.message}</p>
           </div>
           <button
             onClick={() => removeNotification(notification.id)}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>

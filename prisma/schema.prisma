@@ -137,8 +137,8 @@ model Product {
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])
   
-  supplierId  String
-  supplier    Supplier      @relation(fields: [supplierId], references: [id])
+  supplierId  String?
+  supplier    Supplier?     @relation(fields: [supplierId], references: [id])
   
   movements   StockMovement[]
   orderItems  OrderItem[]

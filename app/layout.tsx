@@ -6,6 +6,7 @@ import { MainLayout } from './components/layout/main-layout'
 import { NotificationProvider } from './contexts/notification-context'
 import { NotificationContainer } from './components/notifications/notification-container'
 import { InitializeStore } from '@/components/providers/initialize-store'
+import { AuthProvider } from '@/components/providers/auth-provider'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -15,21 +16,8 @@ export const metadata: Metadata = {
   description: 'Plataforma web completa para gestão de estoque em Moçambique',
   generator: 'stock',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/estoque.png',
+    apple: '/estoque.png',
   },
 }
 
@@ -41,13 +29,15 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="font-sans antialiased">
-        <NotificationProvider>
-          <InitializeStore />
-          <MainLayout>
-            {children}
-          </MainLayout>
-          <NotificationContainer />
-        </NotificationProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <InitializeStore />
+            <MainLayout>
+              {children}
+            </MainLayout>
+            <NotificationContainer />
+          </NotificationProvider>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

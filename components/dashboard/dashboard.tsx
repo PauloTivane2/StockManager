@@ -1,39 +1,49 @@
 "use client";
 
-import { useInventoryStore } from "@/lib/store";
+import { useEffect, useState, useCallback } from "react";
 import { KPICard } from "./kpi-card";
 import { InventoryOverviewChart } from "./charts/inventory-overview-chart";
 import { MovementActivityChart } from "./charts/movement-activity-chart";
 import { LowStockAlert } from "./low-stock-alert";
 import { RecentMovementsTable } from "./recent-movements-table";
-import {
-  Package,
-  AlertTriangle,
-  TrendingUp,
-  Activity,
-} from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, ArrowRightLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface DashboardStats {
+  totalProducts: number;
+  totalInventoryValue: number;
+  lowStockAlerts: number;
+  pendingOrdersCount: number;
+}
+
 export function Dashboard() {
-  const {
-    getProductCount,
-    getTotalInventoryValue,
-    getLowStockItems,
-    getRecentMovements,
-  } = useInventoryStore();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalProducts: 0,
+    totalInventoryValue: 0,
+    lowStockAlerts: 0,
+    pendingOrdersCount: 0,
+  });
 
-  const totalProducts = getProductCount();
-  const totalValue = getTotalInventoryValue();
-  const lowStockItems = getLowStockItems();
-  const recentMovements = getRecentMovements(7);
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dashboard");
+      const data = await res.json();
+      setStats(data);
+    } catch {
+      // keep defaults
+    }
+  }, []);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-MZ", {
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-MZ", {
       style: "currency",
       currency: "MZN",
       minimumFractionDigits: 0,
     }).format(value);
-  };
 
   return (
     <div className="space-y-8">
@@ -49,69 +59,89 @@ export function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total de Produtos"
-          value={totalProducts}
-          description={`${totalProducts} itens em estoque`}
+          value={stats.totalProducts}
+          description="itens em catálogo"
           icon={Package}
+          color="primary"
         />
         <KPICard
-          title="Valor Total"
-          value={formatCurrency(totalValue)}
-          description="Valor total do estoque"
+          title="Valor do Estoque"
+          value={formatCurrency(stats.totalInventoryValue)}
+          description="valor total em armazém"
           icon={TrendingUp}
+          color="success"
         />
         <KPICard
           title="Itens em Alerta"
-          value={lowStockItems.length}
-          description="Produtos com baixo estoque"
+          value={stats.lowStockAlerts}
+          description="abaixo do stock mínimo"
           icon={AlertTriangle}
+          color="warning"
         />
         <KPICard
-          title="Movimentações (7d)"
-          value={recentMovements.length}
-          description="Movimentações da última semana"
-          icon={Activity}
+          title="Pedidos Pendentes"
+          value={stats.pendingOrdersCount}
+          description="aguardando processamento"
+          icon={ArrowRightLeft}
+          color="info"
         />
       </div>
 
-      {/* Alerts and Charts */}
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Left Column */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Inventory Overview Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribuição de Estoque por Categoria</CardTitle>
-              <CardDescription>
-                Quantidade de produtos em cada categoria
-              </CardDescription>
+      {/* Charts + Alerts Row */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Charts Column (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Movement Activity */}
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 border-b border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Atividade de Movimentações</CardTitle>
+                  <CardDescription className="mt-0.5">
+                    Entradas e saídas nos últimos 7 dias
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-green-500" />
+                    <span className="text-muted-foreground">Entradas</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm bg-red-500" />
+                    <span className="text-muted-foreground">Saídas</span>
+                  </div>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              <InventoryOverviewChart />
+            <CardContent className="pt-4 pb-2">
+              <MovementActivityChart />
             </CardContent>
           </Card>
 
-          {/* Movement Activity Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Atividade de Movimentações</CardTitle>
-              <CardDescription>
-                Entradas e saídas nos últimos 7 dias
-              </CardDescription>
+          {/* Category Distribution */}
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 border-b border-border/50">
+              <div>
+                <CardTitle className="text-base">Distribuição por Categoria</CardTitle>
+                <CardDescription className="mt-0.5">
+                  Proporção de produtos em cada categoria
+                </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
-              <MovementActivityChart />
+            <CardContent className="pt-4 pb-2">
+              <InventoryOverviewChart />
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Low Stock Alert */}
+        {/* Right Column */}
         <div>
-          <LowStockAlert items={lowStockItems} />
+          <LowStockAlert />
         </div>
       </div>
 
       {/* Recent Movements */}
-      <RecentMovementsTable movements={recentMovements} />
+      <RecentMovementsTable />
     </div>
   );
 }

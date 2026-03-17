@@ -8,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
 
 const variantStyles = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-  secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
-  ghost: 'text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+  primary: 'bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70',
+  danger: 'bg-danger text-danger-foreground hover:bg-danger/90 active:bg-danger/80',
+  ghost: 'text-foreground hover:bg-muted active:bg-muted/80',
 };
 
 const sizeStyles = {

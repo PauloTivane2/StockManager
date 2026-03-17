@@ -1,31 +1,46 @@
 "use client";
 
-import { Product } from "@/types";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface LowStockAlertProps {
-  items: Product[];
+interface LowStockProduct {
+  id: string;
+  name: string;
+  sku: string;
+  quantity: number;
+  minStock: number;
+  price: string | number;
 }
 
-export function LowStockAlert({ items }: LowStockAlertProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-MZ", {
+export function LowStockAlert() {
+  const [items, setItems] = useState<LowStockProduct[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products?limit=500")
+      .then((r) => r.json())
+      .then((json) => {
+        const products = json.data ?? [];
+        setItems(products.filter((p: LowStockProduct) => p.quantity <= p.minStock));
+      });
+  }, []);
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-MZ", {
       style: "currency",
       currency: "MZN",
       minimumFractionDigits: 0,
     }).format(value);
-  };
 
   return (
-    <Card className="border-orange-200 bg-orange-50">
+    <Card className="border-warning/30 bg-warning/10">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-orange-600" />
+          <AlertCircle className="h-5 w-5 text-warning" />
           <CardTitle className="text-base">Itens em Alerta</CardTitle>
         </div>
-        <CardDescription className="text-orange-700">
+        <CardDescription className="text-warning">
           {items.length} produto(s) com baixo estoque
         </CardDescription>
       </CardHeader>
@@ -38,19 +53,18 @@ export function LowStockAlert({ items }: LowStockAlertProps) {
               {items.map((product) => (
                 <div
                   key={product.id}
-                  className="border-l-2 border-orange-400 bg-white p-3 rounded text-sm"
+                  className="border-l-2 border-warning bg-card p-3 rounded text-sm"
                 >
-                  <p className="font-medium text-foreground truncate">
-                    {product.name}
+                  <p className="font-medium text-foreground truncate">{product.name}</p>
+                  <p className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Quantidade: {product.quantity}
+                  </p>
+                  <p className="text-xs text-warning font-medium mt-1">
+                    Mínimo: {product.minStock}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {product.quantity} {product.unit}
-                  </p>
-                  <p className="text-xs text-orange-600 font-medium mt-1">
-                    Min: {product.minimumStock} {product.unit}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formatCurrency(product.unitPrice)}/un
+                    {formatCurrency(Number(product.price))}/un
                   </p>
                 </div>
               ))}
