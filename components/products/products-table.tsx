@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Edit, Trash2, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
 
 interface ProductsTableProps {
   products: DbProduct[];

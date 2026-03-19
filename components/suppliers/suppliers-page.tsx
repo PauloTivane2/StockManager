@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, Truck, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { SupplierForm } from "./supplier-form";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
+import { useDialog } from "@/hooks/use-dialog";
 import { Skeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 interface DbSupplier {
@@ -31,9 +31,7 @@ export function SuppliersPage({ embedded = false }: { embedded?: boolean }) {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<DbSupplier | undefined>();
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [supplierToDelete, setSupplierToDelete] = useState<{ id: string; name: string } | null>(null);
+  const { dangerDialog } = useDialog();
 
   const fetchSuppliers = async () => {
     try {
@@ -45,7 +43,7 @@ export function SuppliersPage({ embedded = false }: { embedded?: boolean }) {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao carregar fornecedores.");
+      notify.error("Erro ao carregar fornecedores.");
     } finally {
       setLoading(false);
     }
@@ -69,31 +67,26 @@ export function SuppliersPage({ embedded = false }: { embedded?: boolean }) {
   };
 
   const handleDeleteClick = (id: string, name: string) => {
-    setSupplierToDelete({ id, name });
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!supplierToDelete) return;
-    try {
-      const res = await fetch(`/api/suppliers/${supplierToDelete.id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        toast.error(data.error || "Erro ao deletar fornecedor.");
-        return;
+    dangerDialog({
+      title: "Remover Fornecedor",
+      description: `Tem certeza que deseja apagar "${name}"? Esta ação ocultará o fornecedor do sistema.`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" });
+          const data = await res.json();
+          
+          if (!res.ok) {
+            notify.error(data.error || "Erro ao deletar fornecedor.");
+            return;
+          }
+          
+          notify.success("Fornecedor deletado com sucesso!");
+          fetchSuppliers();
+        } catch {
+          notify.error("Erro ao deletar fornecedor.");
+        }
       }
-      
-      toast.success("Fornecedor deletado com sucesso!");
-      fetchSuppliers();
-    } catch (error) {
-      toast.error("Erro ao deletar fornecedor.");
-    } finally {
-      setDeleteDialogOpen(false);
-      setSupplierToDelete(null);
-    }
+    });
   };
 
   return (
@@ -218,14 +211,6 @@ export function SuppliersPage({ embedded = false }: { embedded?: boolean }) {
         onOpenChange={setIsFormOpen}
         supplier={editingSupplier}
         onSaved={fetchSuppliers}
-      />
-
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Remover Fornecedor"
-        description={`Tem certeza que deseja apagar "${supplierToDelete?.name}"? Esta ação ocultará o fornecedor do sistema.`}
-        onConfirm={confirmDelete}
       />
     </div>
   );

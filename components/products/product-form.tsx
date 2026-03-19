@@ -31,7 +31,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Loader2, Package, Tag, Hash, DollarSign, Layers, Truck, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -147,16 +147,16 @@ export function ProductForm({ product, open, onOpenChange, onSaved }: ProductFor
       const json = await res.json();
 
       if (!res.ok) {
-        toast.error(json.error || "Erro ao salvar produto.");
+        notify.error(json.error || "Erro ao salvar produto.");
         return;
       }
 
-      toast.success(isEditing ? "Produto atualizado com sucesso!" : "Produto criado com sucesso!");
+      notify.success(isEditing ? "Produto atualizado com sucesso!" : "Produto criado com sucesso!");
       onSaved();
       onOpenChange(false);
       form.reset();
     } catch {
-      toast.error("Erro ao salvar produto.");
+      notify.error("Erro ao salvar produto.");
     } finally {
       setSubmitting(false);
     }

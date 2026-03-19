@@ -13,9 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { notify } from "@/lib/notify";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { useDialog } from "@/hooks/use-dialog";
 import {
   Shield,
   Server,
@@ -37,7 +37,7 @@ import {
 
 export default function Settings() {
   const { data: session, update: updateSession } = useSession();
-  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const { dangerDialog } = useDialog();
 
   // Profile edit state
   const [editingName, setEditingName] = useState(false);
@@ -72,14 +72,14 @@ export default function Settings() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || "Erro ao atualizar nome.");
+        notify.error(data.error || "Erro ao atualizar nome.");
         return;
       }
       await updateSession({ name: data.name });
-      toast.success("Nome atualizado com sucesso!");
+      notify.success("Nome atualizado com sucesso!");
       setEditingName(false);
     } catch {
-      toast.error("Erro ao atualizar nome.");
+      notify.error("Erro ao atualizar nome.");
     } finally {
       setSavingName(false);
     }
@@ -87,15 +87,15 @@ export default function Settings() {
 
   const handleSavePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("Preencha todos os campos de senha.");
+      notify.error("Preencha todos os campos de senha.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("A nova senha e a confirmação não coincidem.");
+      notify.error("A nova senha e a confirmação não coincidem.");
       return;
     }
     if (newPassword.length < 6) {
-      toast.error("A nova senha deve ter pelo menos 6 caracteres.");
+      notify.error("A nova senha deve ter pelo menos 6 caracteres.");
       return;
     }
 
@@ -108,16 +108,16 @@ export default function Settings() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || "Erro ao alterar senha.");
+        notify.error(data.error || "Erro ao alterar senha.");
         return;
       }
-      toast.success("Senha alterada com sucesso!");
+      notify.success("Senha alterada com sucesso!");
       setShowPasswordForm(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch {
-      toast.error("Erro ao alterar senha.");
+      notify.error("Erro ao alterar senha.");
     } finally {
       setSavingPassword(false);
     }
@@ -128,7 +128,7 @@ export default function Settings() {
     try {
       const res = await fetch("/api/export");
       if (!res.ok) {
-        toast.error("Erro ao exportar dados.");
+        notify.error("Erro ao exportar dados.");
         return;
       }
       const blob = await res.blob();
@@ -140,17 +140,22 @@ export default function Settings() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Dados exportados com sucesso!");
+      notify.success("Dados exportados com sucesso!");
     } catch {
-      toast.error("Erro ao exportar dados.");
+      notify.error("Erro ao exportar dados.");
     } finally {
       setExporting(false);
     }
   };
 
-  const handleClearData = async () => {
-    setClearDialogOpen(false);
-    toast.info("Funcionalidade de limpeza de dados desativada por segurança.");
+  const handleClearData = () => {
+    dangerDialog({
+      title: "Limpar Todos os Dados",
+      description: "Tem certeza que deseja apagar todos os dados do sistema? Esta ação é irreversível e todos os produtos, movimentações e relatórios serão perdidos permanentemente.",
+      onConfirm: async () => {
+        notify.info("Cativo", "Funcionalidade de limpeza de dados desativada por segurança.");
+      }
+    });
   };
 
   const roleLabel: Record<string, string> = {
@@ -414,7 +419,7 @@ export default function Settings() {
           <Button
             variant="outline"
             className="w-full justify-start gap-3 h-12 border-danger/30 hover:bg-danger/10"
-            onClick={() => setClearDialogOpen(true)}
+            onClick={handleClearData}
           >
             <div className="h-8 w-8 rounded-lg bg-danger/10 flex items-center justify-center">
               <Trash2 className="h-4 w-4 text-danger" />
@@ -428,14 +433,6 @@ export default function Settings() {
           </Button>
         </CardContent>
       </Card>
-
-      <ConfirmDialog
-        open={clearDialogOpen}
-        onOpenChange={setClearDialogOpen}
-        title="Limpar Todos os Dados"
-        description="Tem certeza que deseja apagar todos os dados do sistema? Esta ação é irreversível e todos os produtos, movimentações e relatórios serão perdidos permanentemente."
-        onConfirm={handleClearData}
-      />
     </div>
   );
 }

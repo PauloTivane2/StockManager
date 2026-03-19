@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, Tag, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { CategoryForm } from "./category-form";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
+import { useDialog } from "@/hooks/use-dialog";
 import { Skeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 interface DbCategory {
@@ -31,9 +31,7 @@ export function CategoriesPage({ embedded = false }: { embedded?: boolean }) {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<DbCategory | undefined>();
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string } | null>(null);
+  const { dangerDialog } = useDialog();
 
   const fetchCategories = async () => {
     try {
@@ -45,7 +43,7 @@ export function CategoriesPage({ embedded = false }: { embedded?: boolean }) {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao carregar categorias.");
+      notify.error("Erro ao carregar categorias.");
     } finally {
       setLoading(false);
     }
@@ -69,31 +67,26 @@ export function CategoriesPage({ embedded = false }: { embedded?: boolean }) {
   };
 
   const handleDeleteClick = (id: string, name: string) => {
-    setCategoryToDelete({ id, name });
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!categoryToDelete) return;
-    try {
-      const res = await fetch(`/api/categories/${categoryToDelete.id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        toast.error(data.error || "Erro ao deletar categoria.");
-        return;
+    dangerDialog({
+      title: "Deletar Categoria",
+      description: `Tem certeza que deseja deletar a categoria "${name}"? Isso só será possível se não houver produtos associados a ela.`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+          const data = await res.json();
+          
+          if (!res.ok) {
+            notify.error(data.error || "Erro ao deletar categoria.");
+            return;
+          }
+          
+          notify.success("Categoria deletada com sucesso!");
+          fetchCategories();
+        } catch {
+          notify.error("Erro ao deletar categoria.");
+        }
       }
-      
-      toast.success("Categoria deletada com sucesso!");
-      fetchCategories();
-    } catch (error) {
-      toast.error("Erro ao deletar categoria.");
-    } finally {
-      setDeleteDialogOpen(false);
-      setCategoryToDelete(null);
-    }
+    });
   };
 
   return (
@@ -216,14 +209,6 @@ export function CategoriesPage({ embedded = false }: { embedded?: boolean }) {
         onOpenChange={setIsFormOpen}
         category={editingCategory}
         onSaved={fetchCategories}
-      />
-
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Deletar Categoria"
-        description={`Tem certeza que deseja deletar a categoria "${categoryToDelete?.name}"? Isso só será possível se não houver produtos associados a ela.`}
-        onConfirm={confirmDelete}
       />
     </div>
   );

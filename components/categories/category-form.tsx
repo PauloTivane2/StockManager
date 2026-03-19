@@ -22,9 +22,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Loader2, Tag, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+
 
 const categorySchema = z.object({
   name: z.string().min(1, "O nome da categoria é obrigatório"),
@@ -88,16 +88,16 @@ export function CategoryForm({ category, open, onOpenChange, onSaved }: Category
       const json = await res.json();
 
       if (!res.ok) {
-        toast.error(json.error || "Erro ao salvar categoria.");
+        notify.error(json.error || "Erro ao salvar categoria.");
         return;
       }
 
-      toast.success(isEditing ? "Categoria atualizada com sucesso!" : "Categoria criada com sucesso!");
+      notify.success(isEditing ? "Categoria atualizada com sucesso!" : "Categoria criada com sucesso!");
       onSaved();
       onOpenChange(false);
       form.reset();
     } catch {
-      toast.error("Erro ao salvar categoria.");
+      notify.error("Erro ao salvar categoria.");
     } finally {
       setSubmitting(false);
     }

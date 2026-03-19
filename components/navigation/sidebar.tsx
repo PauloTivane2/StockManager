@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
+import { useDialog } from "@/hooks/use-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -56,6 +57,7 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const { confirmDialog } = useDialog();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-background flex flex-col">
@@ -131,7 +133,15 @@ export function Sidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="text-danger focus:text-danger focus:bg-danger/10 cursor-pointer"
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmDialog({
+                      title: "Terminar Sessão",
+                      description: "Tem certeza que deseja sair da sua conta? Será necessário fazer login novamente.",
+                      confirmLabel: "Sim, sair",
+                      onConfirm: () => signOut({ callbackUrl: "/login" }),
+                    });
+                  }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>

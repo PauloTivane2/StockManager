@@ -28,7 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
@@ -145,17 +145,17 @@ export function MovementForm({ open, onOpenChange, onSaved }: MovementFormProps)
       const json = await res.json();
 
       if (!res.ok) {
-        toast.error(json.error || "Erro ao registar movimentação.");
+        notify.error(json.error || "Erro ao registar movimentação.");
         return;
       }
 
       const typeObj = MOVEMENT_TYPES.find((t) => t.value === data.type);
-      toast.success(`${data.quantity} unidades registradas como ${typeObj?.label.toLowerCase() || data.type}`);
+      notify.success(`${data.quantity} unidades registradas como ${typeObj?.label.toLowerCase() || data.type}`);
       onSaved();
       onOpenChange(false);
       form.reset();
     } catch {
-      toast.error("Erro ao registar movimentação.");
+      notify.error("Erro ao registar movimentação.");
     } finally {
       setSubmitting(false);
     }

@@ -36,7 +36,7 @@ import {
   ArrowDownCircle,
 } from "lucide-react";
 import { generateStockReport } from "@/components/reports/pdf";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton } from "@/components/ui/skeleton";
@@ -201,9 +201,9 @@ export function ReportsPage() {
   const exportToPDF = async () => {
     try {
       await generateStockReport({ insights: { ...insights, totalProducts: products.length }, categoryData, topProducts });
-      toast.success("PDF exportado com sucesso.");
+      notify.success("PDF exportado com sucesso.");
     } catch {
-      toast.error("Erro ao gerar o PDF.");
+      notify.error("Erro ao gerar o PDF.");
     }
   };
 

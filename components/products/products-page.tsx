@@ -7,7 +7,7 @@ import { ProductsTable } from "./products-table";
 import { CategoriesPage } from "@/components/categories/categories-page";
 import { SuppliersPage } from "@/components/suppliers/suppliers-page";
 import { Plus, Package, Tag, Truck } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 
 export interface DbProduct {
@@ -52,7 +52,7 @@ export function ProductsPage() {
       const json = await res.json();
       setProducts(json.data ?? []);
     } catch {
-      toast.error("Erro ao carregar produtos.");
+      notify.error("Erro ao carregar produtos.");
     } finally {
       setLoading(false);
     }
@@ -72,13 +72,13 @@ export function ProductsPage() {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const json = await res.json();
-        toast.error(json.error || "Erro ao remover produto.");
+        notify.error(json.error || "Erro ao remover produto.");
         return;
       }
-      toast.success("Produto removido com sucesso!");
+      notify.success("Produto removido com sucesso!");
       fetchProducts();
     } catch {
-      toast.error("Erro ao remover produto.");
+      notify.error("Erro ao remover produto.");
     }
   };
 

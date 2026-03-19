@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Loader2, Truck, Mail, Phone, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -96,16 +96,16 @@ export function SupplierForm({ supplier, open, onOpenChange, onSaved }: Supplier
       const json = await res.json();
 
       if (!res.ok) {
-        toast.error(json.error || "Erro ao salvar fornecedor.");
+        notify.error(json.error || "Erro ao salvar fornecedor.");
         return;
       }
 
-      toast.success(isEditing ? "Fornecedor atualizado com sucesso!" : "Fornecedor criado com sucesso!");
+      notify.success(isEditing ? "Fornecedor atualizado com sucesso!" : "Fornecedor criado com sucesso!");
       onSaved();
       onOpenChange(false);
       form.reset();
     } catch {
-      toast.error("Erro ao salvar fornecedor.");
+      notify.error("Erro ao salvar fornecedor.");
     } finally {
       setSubmitting(false);
     }

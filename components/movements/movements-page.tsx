@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MovementForm } from "./movement-form";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Plus, ArrowDownRight, ArrowUpRight, ArrowRightLeft } from "lucide-react";
 import { Skeleton, TableSkeleton } from "@/components/ui/skeleton";
 
@@ -56,7 +56,7 @@ export function MovementsPage() {
       const json = await res.json();
       setMovements(json.data ?? []);
     } catch {
-      toast.error("Erro ao carregar movimentações.");
+      notify.error("Erro ao carregar movimentações.");
     } finally {
       setLoading(false);
     }
