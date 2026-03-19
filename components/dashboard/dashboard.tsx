@@ -44,11 +44,9 @@ export function Dashboard() {
   }, [fetchStats]);
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-MZ", {
-      style: "currency",
-      currency: "MZN",
+    `${new Intl.NumberFormat("pt-MZ", {
       minimumFractionDigits: 0,
-    }).format(value);
+    }).format(value)} MZN`;
 
   return (
     <div className="space-y-8">

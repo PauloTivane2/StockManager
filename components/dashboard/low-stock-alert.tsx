@@ -32,11 +32,9 @@ export function LowStockAlert() {
   }, []);
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-MZ", {
-      style: "currency",
-      currency: "MZN",
+    `${new Intl.NumberFormat("pt-MZ", {
       minimumFractionDigits: 0,
-    }).format(value);
+    }).format(value)} MZN`;
 
   return (
     <Card className="border-warning/30 bg-warning/10">

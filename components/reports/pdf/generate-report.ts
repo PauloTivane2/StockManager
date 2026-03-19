@@ -67,7 +67,7 @@ export interface PdfReportData {
 // Helpers
 // ──────────────────────────────────────────────────
 const fmt = (v: number) =>
-  new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "MZN", minimumFractionDigits: 0 }).format(v);
+  `${new Intl.NumberFormat("pt-MZ", { minimumFractionDigits: 0 }).format(v)} MZN`;
 
 const fmtDate = () =>
   new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(new Date());

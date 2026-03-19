@@ -84,7 +84,7 @@ const CustomTooltipLine = ({ active, payload, label }: any) => {
 const CustomTooltipPie = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "MZN", minimumFractionDigits: 0 }).format(v);
+    `${new Intl.NumberFormat("pt-MZ", { minimumFractionDigits: 0 }).format(v)} MZN`;
   return (
     <div className="bg-card border border-border/60 rounded-xl px-4 py-3 shadow-xl">
       <div className="flex items-center gap-2 mb-1">
@@ -139,7 +139,7 @@ export function ReportsPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "MZN", minimumFractionDigits: 0 }).format(value);
+    `${new Intl.NumberFormat("pt-MZ", { minimumFractionDigits: 0 }).format(value)} MZN`;
 
   const insights = useMemo(() => {
     const totalValue = products.reduce((s, p) => s + p.quantity * Number(p.price), 0);

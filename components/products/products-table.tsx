@@ -87,11 +87,9 @@ export function ProductsTable({
   }, [products, searchTerm, selectedCategory, sortBy]);
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-MZ", {
-      style: "currency",
-      currency: "MZN",
+    `${new Intl.NumberFormat("pt-MZ", {
       minimumFractionDigits: 0,
-    }).format(value);
+    }).format(value)} MZN`;
 
   const handleDeleteClick = (id: string, name: string) => {
     dangerDialog({

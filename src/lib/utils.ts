@@ -30,10 +30,10 @@ export function formatDateTime(date: Date | string): string {
  * Format a number as MZN currency
  */
 export function formatCurrencyMZN(amount: number): string {
-  return `MT ${amount.toLocaleString('pt-BR', {
+  return `${amount.toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  })} MZN`;
 }
 
 /**
