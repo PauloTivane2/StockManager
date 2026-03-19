@@ -52,7 +52,7 @@ export async function GET() {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="inventoryhub-export-${new Date().toISOString().split("T")[0]}.csv"`,
+      "Content-Disposition": `attachment; filename="kutenda-export-${new Date().toISOString().split("T")[0]}.csv"`,
     },
   });
 }

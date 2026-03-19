@@ -26,7 +26,7 @@ export function Sidebar() {
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-card flex flex-col">
       <div className="flex h-16 items-center border-b border-border px-6">
         <img src="/estoque.png" alt="Logo" className="h-8 w-8 mr-2 rounded-md object-contain" />
-        <h1 className="text-lg font-bold text-foreground">InventoryHub</h1>
+        <h1 className="text-lg font-bold text-foreground">Kutenda</h1>
       </div>
 
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto">

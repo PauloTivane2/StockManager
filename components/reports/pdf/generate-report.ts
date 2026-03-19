@@ -134,7 +134,7 @@ function drawHeader(doc: jsPDF, data: PdfReportData) {
   doc.setFont(SERIF, "bold");
   doc.setFontSize(28);
   doc.setTextColor(...C.black);
-  doc.text("STOK", 20, 22);
+  doc.text("Kutenda", 20, 22);
 
   // Tagline
   doc.setFont(SERIF, "italic");
@@ -418,7 +418,7 @@ export async function generateStockReport(data: PdfReportData): Promise<void> {
     doc.setFont(SERIF, "italic");
     doc.setFontSize(7);
     doc.setTextColor(...C.silver);
-    doc.text("STOK  ·  Relatório Confidencial", 20, h - 5);
+    doc.text("Kutenda  ·  Relatório Confidencial", 20, h - 5);
 
     // Right — page number
     doc.setFont(SANS, "normal");
@@ -431,5 +431,5 @@ export async function generateStockReport(data: PdfReportData): Promise<void> {
   const d = new Date();
   const datePart = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
   const timePart = `${d.getHours().toString().padStart(2, "0")}h${d.getMinutes().toString().padStart(2, "0")}`;
-  doc.save(`STOK-Relatorio_${datePart}_${timePart}.pdf`);
+  doc.save(`Kutenda-Relatorio_${datePart}_${timePart}.pdf`);
 }

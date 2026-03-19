@@ -3,7 +3,7 @@ import { MainLayout } from "@/app/components/layout/main-layout";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Fornecedores - InventoryHub",
+  title: "Fornecedores - Kutenda",
   description: "Gerencie os fornecedores do seu estoque",
 };
 

@@ -79,7 +79,7 @@ export default function LoginPage() {
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Package className="h-5 w-5 text-primary" />
           </div>
-          <span className="text-xl font-bold tracking-tight">STOK</span>
+          <span className="text-xl font-bold tracking-tight">Kutenda</span>
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -103,7 +103,7 @@ export default function LoginPage() {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="admin@stok.com"
+                      placeholder="admin@kutenda.com"
                       className="pl-10 h-11 bg-muted/40 border-border/60 focus:bg-background transition-colors"
                       {...field}
                     />

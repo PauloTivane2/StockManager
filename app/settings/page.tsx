@@ -135,7 +135,7 @@ export default function Settings() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `inventoryhub-export-${new Date().toISOString().split("T")[0]}.csv`;
+      a.download = `kutenda-export-${new Date().toISOString().split("T")[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();

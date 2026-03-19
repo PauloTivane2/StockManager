@@ -16,7 +16,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'InventoryHub - Gestão de Estoque',
+  title: 'Kutenda - Gestão de Estoque',
   description: 'Plataforma web completa para gestão de estoque em Moçambique',
   generator: 'stock',
   icons: {

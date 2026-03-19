@@ -65,7 +65,7 @@ export function Sidebar() {
       <div className="flex h-16 items-center border-b border-border px-6">
         <div className="flex items-center gap-2">
           <Package className="h-6 w-6 text-primary" />
-          <h1 className="text-lg font-bold text-foreground">InventoryHub</h1>
+          <h1 className="text-lg font-bold text-foreground">Kutenda</h1>
         </div>
       </div>
 

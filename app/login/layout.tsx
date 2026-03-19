@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Login - STOK',
-  description: 'Acesse a sua conta STOK para gerir o seu estoque.',
+  title: 'Login - Kutenda',
+  description: 'Acesse a sua conta Kutenda para gerir o seu estoque.',
 };
 
 export default function LoginLayout({
@@ -36,9 +36,9 @@ export default function LoginLayout({
           {/* Logo area */}
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 backdrop-blur-sm flex items-center justify-center border border-primary/20">
-              <img src="/estoque.png" alt="STOK" className="h-6 w-6 object-contain" />
+              <img src="/estoque.png" alt="Kutenda" className="h-6 w-6 object-contain" />
             </div>
-            <span className="text-xl font-bold tracking-tight">STOK</span>
+            <span className="text-xl font-bold tracking-tight">Kutenda</span>
           </div>
 
           {/* Center quote */}
@@ -77,7 +77,7 @@ export default function LoginLayout({
 
           {/* Footer */}
           <div className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} STOK — Plataforma de Gestão de Estoque
+            © {new Date().getFullYear()} Kutenda — Plataforma de Gestão de Estoque
           </div>
         </div>
       </div>

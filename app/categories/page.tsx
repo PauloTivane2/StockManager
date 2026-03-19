@@ -3,7 +3,7 @@ import { MainLayout } from "@/app/components/layout/main-layout";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Categorias - InventoryHub",
+  title: "Categorias - Kutenda",
   description: "Gerencie as categorias de produtos do seu estoque",
 };
 
