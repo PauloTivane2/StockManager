@@ -46,7 +46,7 @@ export async function GET() {
       Number(p.costPrice).toFixed(2),
       p.quantity,
       p.minStock,
-      p.status === "ACTIVE" ? "Ativo" : p.status === "INACTIVE" ? "Inativo" : p.status === "OUT_OF_STOCK" ? "Esgotado" : p.status
+      p.status === "ACTIVE" ? "Ativo" : p.status === "INACTIVE" ? "Inativo" : p.status === "DISCONTINUED" ? "Descontinuado" : p.status
     ].map(escapeCsv).join(","));
   });
 
