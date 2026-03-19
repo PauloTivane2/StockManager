@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DbProduct } from "./products-page";
+import { useDialog } from "@/hooks/use-dialog";
+import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,7 +48,7 @@ export function ProductsTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "quantity" | "value">("name");
-  const [deleteProduct, setDeleteProduct] = useState<{ id: string; name: string } | null>(null);
+  const { dangerDialog } = useDialog();
 
   const categories = useMemo(() => {
     const unique = new Map<string, string>();
@@ -94,14 +95,19 @@ export function ProductsTable({
     }).format(value);
 
   const handleDeleteClick = (id: string, name: string) => {
-    setDeleteProduct({ id, name });
-  };
-
-  const confirmDelete = () => {
-    if (deleteProduct) {
-      onDelete(deleteProduct.id);
-      setDeleteProduct(null);
-    }
+    dangerDialog({
+      title: "Excluir Produto?",
+      description: `Tem certeza que deseja excluir "${name}"? Esta acção é permanente e não pode ser desfeita.`,
+      confirmLabel: "Sim, excluir",
+      onConfirm: async () => {
+        try {
+          await onDelete(id);
+          notify.success("Produto eliminado", `"${name}" foi removido com sucesso.`);
+        } catch {
+          notify.error("Erro ao eliminar", `Não foi possível excluir "${name}". Tente novamente.`);
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -216,20 +222,12 @@ export function ProductsTable({
           </TableBody>
         </Table>
       </div>
-
       {filteredAndSorted.length === 0 && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">Nenhum produto encontrado</p>
         </div>
       )}
 
-      <ConfirmDialog
-        open={!!deleteProduct}
-        onOpenChange={(open) => !open && setDeleteProduct(null)}
-        title="Confirmar Exclusão"
-        description={`Tem certeza que deseja excluir "${deleteProduct?.name}"? Esta ação não pode ser desfeita.`}
-        onConfirm={confirmDelete}
-      />
     </div>
   );
 }

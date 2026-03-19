@@ -6,6 +6,8 @@ import { NotificationProvider } from './contexts/notification-context'
 import { NotificationContainer } from './components/notifications/notification-container'
 import { InitializeStore } from '@/components/providers/initialize-store'
 import { AuthProvider } from '@/components/providers/auth-provider'
+import { SmartDialog } from '@/components/ui/smart-dialog'
+import { Toaster } from '@/components/ui/sonner'
 
 const montserrat = Montserrat({ 
   subsets: ["latin"],
@@ -39,8 +41,10 @@ export default function RootLayout({
             </MainLayout>
             <NotificationContainer />
           </NotificationProvider>
+          {/* Global dialog & toast — mounted once, usable anywhere */}
+          <SmartDialog />
+          <Toaster position="top-right" richColors closeButton />
         </AuthProvider>
-       
       </body>
     </html>
   )

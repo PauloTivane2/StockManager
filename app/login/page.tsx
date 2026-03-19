@@ -16,7 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
+import { useDialog } from "@/hooks/use-dialog";
 import { Package, Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
 
 const loginSchema = z.object({
@@ -28,6 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { alertDialog } = useDialog();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -50,14 +52,20 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error("Credenciais inválidas. Verifique o email e a senha.");
+        alertDialog(
+          "Falha no Login",
+          "As credenciais inseridas estão incorrectas. Por favor, verifique o seu email e senha e tente novamente."
+        );
       } else {
-        toast.success("Login realizado com sucesso!");
+        notify.success("Login realizado com sucesso!");
         router.push("/");
         router.refresh();
       }
     } catch {
-      toast.error("Ocorreu um erro ao fazer login. Tente novamente.");
+      alertDialog(
+        "Erro de Conexão",
+        "Ocorreu um erro ao comunicar com o servidor. Por favor, tente novamente mais tarde."
+      );
     } finally {
       setIsLoading(false);
     }
