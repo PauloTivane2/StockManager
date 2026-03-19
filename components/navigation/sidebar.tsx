@@ -133,13 +133,15 @@ export function Sidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="text-danger focus:text-danger focus:bg-danger/10 cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onSelect={(e) => {
+                    e.preventDefault(); // Impede o fechamento imediato do menu, evitando bug de foco visual
                     confirmDialog({
                       title: "Terminar Sessão",
                       description: "Tem certeza que deseja sair da sua conta? Será necessário fazer login novamente.",
                       confirmLabel: "Sim, sair",
-                      onConfirm: () => signOut({ callbackUrl: "/login" }),
+                      onConfirm: async () => {
+                        await signOut({ callbackUrl: "/login" });
+                      },
                     });
                   }}
                 >
